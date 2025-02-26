@@ -1,6 +1,7 @@
-export class ExcepcionRetorno {
+export class ExcepcionRetorno extends Error {
   valor: any;
   constructor(valor: any) {
+    super("Excepción de retorno");
     this.valor = valor;
   }
 }
@@ -162,22 +163,18 @@ export class Interprete {
   private ejecutarLlamadaFunción(expr: any): any {
     // Función incorporada "imprime"
     if (expr.callee === "imprime") {
-      const args = expr.arguments.map((arg: any) => this.evaluar(arg));
-      const mensaje = args.join(" ");
-      // Se acumula la salida en lugar de solo imprimir en consola
-      this.salida += mensaje;
-      return mensaje;
+      this.controlarFuncionImprime(expr);
     }
-    // Función definida por el usuario
+    // Obtener la función definida por el usuario
     const func = this.funciones[expr.callee];
-    if (!func) {
-      throw new Error("Función no definida: " + expr.callee);
-    }
-    const args = expr.arguments.map((arg: any) => this.evaluar(arg));
+
+    // Obtener los argumentos de la llamada
+    const args = this.obtenerArgs(expr,func);
 
     // Se guarda el ambiente actual y la salida global
     const globalesPrevias = { ...this.globales };
     const salidaPrevia = this.salida;
+
     // Reiniciamos la salida local para capturar la salida propia de la función
     this.salida = "";
 
@@ -185,10 +182,42 @@ export class Interprete {
       throw new Error(`Número incorrecto de argumentos para la función ${func.name}`);
     }
     // Asigna los parámetros de la función a los argumentos evaluados
+    this.asignarParametros(func, args);
+
+    // Se ejecuta el cuerpo de la función
+    const resultado = this.ejecutarFuncion(func);
+
+    // Se obtiene la salida generada durante la ejecución de la función
+
+    const salidaImpreso = this.salida;
+
+    // Se restaura el ambiente y la salida global previa
+    this.globales = globalesPrevias;
+    this.salida = salidaPrevia;
+
+    // Se retorna la salida impresa o el resultado
+    return salidaImpreso !== "" ? salidaImpreso : resultado;
+  }
+  private controlarFuncionImprime(expr: any): any {
+    const args = expr.arguments.map((arg: any) => this.evaluar(arg));
+      const mensaje = args.join(" ");
+      // Se acumula la salida en lugar de solo imprimir en consola
+      this.salida += mensaje;
+      return mensaje;
+  }
+  private obtenerArgs(expr:any , func : any){
+    if (!func) {
+      throw new Error("Función no definida: " + expr.callee);
+    }
+    const args = expr.arguments.map((arg: any) => this.evaluar(arg));
+    return args;
+  }
+  private asignarParametros(func: any, args: any) {
     for (let i = 0; i < func.params.length; i++) {
       this.globales[func.params[i]] = args[i];
     }
-
+  }
+  private ejecutarFuncion(func: any) {
     let resultado = null;
     try {
       resultado = this.ejecutarBloque(func.body);
@@ -199,14 +228,7 @@ export class Interprete {
         throw e;
       }
     }
-    // Se obtiene la salida generada durante la ejecución de la función
-    const salidaImpreso = this.salida;
-    // Se restaura el ambiente y la salida global previa
-    this.globales = globalesPrevias;
-    this.salida = salidaPrevia;
-
-    // Se retorna la salida impresa o el resultado
-    return salidaImpreso !== "" ? salidaImpreso : resultado;
+    return resultado;
   }
 }
 
