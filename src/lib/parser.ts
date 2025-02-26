@@ -200,7 +200,6 @@ export class Parser {
   }
 
   private unary(): ASTNode {
-    // No se implementan operadores unarios en este ejemplo
     return this.call();
   }
 
