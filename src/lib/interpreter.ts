@@ -20,8 +20,8 @@ export class Interprete {
     let resultado: any = undefined;
     try {
       // Se recorre cada declaración del programa
-      for (const stmt of ast.body) {
-        resultado = this.ejecutar(stmt);
+      for (const declaracion of ast.body) {
+        resultado = this.ejecutar(declaracion);
       }
     } catch (e) {
       if (e instanceof ExcepcionRetorno) {
@@ -39,8 +39,8 @@ export class Interprete {
    */
   private ejecutarBloque(declaraciones: any[]): any {
     let resultado: any = undefined;
-    for (const stmt of declaraciones) {
-      resultado = this.ejecutar(stmt);
+    for (const declaracion of declaraciones) {
+      resultado = this.ejecutar(declaracion);
     }
     return resultado;
   }
@@ -48,48 +48,48 @@ export class Interprete {
   /**
    * Ejecuta una declaración según su tipo.
    */
-  private ejecutar(stmt: any): any {
-    switch (stmt.type) {
+  private ejecutar(declaracion: any): any {
+    switch (declaracion.type) {
       case "VarDeclaration":
-        return this.ejecutarDeclaracionVariable(stmt);
+        return this.ejecutarDeclaracionVariable(declaracion);
       case "FunctionDeclaration":
-        return this.ejecutarDeclaracionFunción(stmt);
+        return this.ejecutarDeclaracionFunción(declaracion);
       case "ExpressionStatement":
-        return this.evaluar(stmt.expression);
+        return this.evaluar(declaracion.expression);
       case "ReturnStatement":
-        const valorRetorno = this.evaluar(stmt.expression);
+        const valorRetorno = this.evaluar(declaracion.expression);
         throw new ExcepcionRetorno(valorRetorno);
       case "IfStatement":
-        return this.ejecutarSentenciaSi(stmt);
+        return this.ejecutarSentenciaSi(declaracion);
       default:
-        throw new Error("Declaración desconocida: " + JSON.stringify(stmt, null, 2));
+        throw new Error("Declaración desconocida: " + JSON.stringify(declaracion, null, 2));
     }
   }
 
   /**
    * Declara una variable y la inicializa (o la fija en 0 si no hubiera valor).
    */
-  private ejecutarDeclaracionVariable(stmt: any): void {
-    const valor = stmt.initializer ? this.evaluar(stmt.initializer) : 0;
-    this.globales[stmt.identifier] = valor;
+  private ejecutarDeclaracionVariable(declaracion: any): void {
+    const valor = declaracion.initializer ? this.evaluar(declaracion.initializer) : 0;
+    this.globales[declaracion.identifier] = valor;
   }
 
   /**
    * Almacena la definición de una función en la tabla de funciones.
    */
-  private ejecutarDeclaracionFunción(stmt: any): void {
-    this.funciones[stmt.name] = stmt;
+  private ejecutarDeclaracionFunción(declaracion: any): void {
+    this.funciones[declaracion.name] = declaracion;
   }
 
   /**
    * Ejecuta una sentencia If y retorna el resultado del bloque correspondiente.
    */
-  private ejecutarSentenciaSi(stmt: any): any {
-    const condición = this.evaluar(stmt.condition);
+  private ejecutarSentenciaSi(declaracion: any): any {
+    const condición = this.evaluar(declaracion.condition);
     if (condición) {
-      return this.ejecutarBloque(stmt.thenBranch);
-    } else if (stmt.elseBranch) {
-      return this.ejecutarBloque(stmt.elseBranch);
+      return this.ejecutarBloque(declaracion.thenBranch);
+    } else if (declaracion.elseBranch) {
+      return this.ejecutarBloque(declaracion.elseBranch);
     }
     return null;
   }
