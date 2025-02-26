@@ -1,6 +1,6 @@
-import { Interpreter } from '@/lib/interpreter';
+import Interprete from '@/lib/interpreter';
 import { Lexer } from '@/lib/lexer';
-import { Parser } from '@/lib/parser';
+import Parser from '@/lib/parser';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -8,8 +8,8 @@ export async function POST(req: Request) {
   try {
     const { code } = await req.json();
     tokens = new Lexer(code).tokenize();
-    const parsed = new Parser(tokens).parse();
-    const result = new Interpreter().interpret(parsed);
+    const parsed = new Parser(tokens).analizar();
+    const result = new Interprete().interpretar(parsed);
     return NextResponse.json({ result, filteredTokens: tokens });
   } catch (error) {
     console.error(error);

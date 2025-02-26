@@ -1,66 +1,66 @@
-export class ReturnException {
-  value: any;
-  constructor(value: any) {
-    this.value = value;
+export class ExcepcionRetorno {
+  valor: any;
+  constructor(valor: any) {
+    this.valor = valor;
   }
 }
 
-export class Interpreter {
+export class Interprete {
   // Ambiente global y tabla de funciones
-  private globals: { [key: string]: any } = {};
-  private functions: { [key: string]: any } = {};
+  private globales: { [clave: string]: any } = {};
+  private funciones: { [clave: string]: any } = {};
   // Se acumula la salida de la función "imprime"
-  private output: string = "";
+  private salida: string = "";
 
   /**
    * Interpreta el AST y retorna el resultado de la última sentencia evaluada.
    * Si se ha llamado a "imprime" dentro de una función, se devuelve esa salida.
    */
-  public interpret(ast: any): any {
-    let result: any = undefined;
+  public interpretar(ast: any): any {
+    let resultado: any = undefined;
     try {
       // Se recorre cada declaración del programa
       for (const stmt of ast.body) {
-        result = this.execute(stmt);
+        resultado = this.ejecutar(stmt);
       }
     } catch (e) {
-      if (e instanceof ReturnException) {
-        return e.value;
+      if (e instanceof ExcepcionRetorno) {
+        return e.valor;
       }
       console.error(e);
       throw e;
     }
     // Se devuelve la salida acumulada o el último resultado
-    return this.output !== "" ? this.output : result;
+    return this.salida !== "" ? this.salida : resultado;
   }
 
   /**
    * Ejecuta una lista de declaraciones y retorna el resultado de la última.
    */
-  private executeBlock(statements: any[]): any {
-    let result: any = undefined;
-    for (const stmt of statements) {
-      result = this.execute(stmt);
+  private ejecutarBloque(declaraciones: any[]): any {
+    let resultado: any = undefined;
+    for (const stmt of declaraciones) {
+      resultado = this.ejecutar(stmt);
     }
-    return result;
+    return resultado;
   }
 
   /**
    * Ejecuta una declaración según su tipo.
    */
-  private execute(stmt: any): any {
+  private ejecutar(stmt: any): any {
     switch (stmt.type) {
       case "VarDeclaration":
-        return this.executeVarDeclaration(stmt);
+        return this.ejecutarDeclaracionVariable(stmt);
       case "FunctionDeclaration":
-        return this.executeFunctionDeclaration(stmt);
+        return this.ejecutarDeclaracionFunción(stmt);
       case "ExpressionStatement":
-        return this.evaluate(stmt.expression);
+        return this.evaluar(stmt.expression);
       case "ReturnStatement":
-        const retValue = this.evaluate(stmt.expression);
-        throw new ReturnException(retValue);
+        const valorRetorno = this.evaluar(stmt.expression);
+        throw new ExcepcionRetorno(valorRetorno);
       case "IfStatement":
-        return this.executeIfStatement(stmt);
+        return this.ejecutarSentenciaSi(stmt);
       default:
         throw new Error("Declaración desconocida: " + JSON.stringify(stmt, null, 2));
     }
@@ -69,27 +69,27 @@ export class Interpreter {
   /**
    * Declara una variable y la inicializa (o la fija en 0 si no hubiera valor).
    */
-  private executeVarDeclaration(stmt: any): void {
-    const value = stmt.initializer ? this.evaluate(stmt.initializer) : 0;
-    this.globals[stmt.identifier] = value;
+  private ejecutarDeclaracionVariable(stmt: any): void {
+    const valor = stmt.initializer ? this.evaluar(stmt.initializer) : 0;
+    this.globales[stmt.identifier] = valor;
   }
 
   /**
    * Almacena la definición de una función en la tabla de funciones.
    */
-  private executeFunctionDeclaration(stmt: any): void {
-    this.functions[stmt.name] = stmt;
+  private ejecutarDeclaracionFunción(stmt: any): void {
+    this.funciones[stmt.name] = stmt;
   }
 
   /**
    * Ejecuta una sentencia If y retorna el resultado del bloque correspondiente.
    */
-  private executeIfStatement(stmt: any): any {
-    const condition = this.evaluate(stmt.condition);
-    if (condition) {
-      return this.executeBlock(stmt.thenBranch);
+  private ejecutarSentenciaSi(stmt: any): any {
+    const condición = this.evaluar(stmt.condition);
+    if (condición) {
+      return this.ejecutarBloque(stmt.thenBranch);
     } else if (stmt.elseBranch) {
-      return this.executeBlock(stmt.elseBranch);
+      return this.ejecutarBloque(stmt.elseBranch);
     }
     return null;
   }
@@ -97,22 +97,22 @@ export class Interpreter {
   /**
    * Evalúa una expresión según su tipo.
    */
-  private evaluate(expr: any): any {
+  private evaluar(expr: any): any {
     switch (expr.type) {
       case "Literal":
         return expr.value;
       case "Identifier":
-        if (this.globals.hasOwnProperty(expr.name)) {
-          return this.globals[expr.name];
+        if (this.globales.hasOwnProperty(expr.name)) {
+          return this.globales[expr.name];
         } else {
           throw new Error(`Variable ${expr.name} no definida`);
         }
       case "BinaryExpression":
-        return this.evaluateBinary(expr);
+        return this.evaluarBinario(expr);
       case "Grouping":
-        return this.evaluate(expr.expression);
+        return this.evaluar(expr.expression);
       case "FunctionCall":
-        return this.executeFunctionCall(expr);
+        return this.ejecutarLlamadaFunción(expr);
       default:
         throw new Error("Expresión desconocida: " + JSON.stringify(expr, null, 2));
     }
@@ -121,35 +121,35 @@ export class Interpreter {
   /**
    * Evalúa una expresión binaria.
    */
-  private evaluateBinary(expr: any): any {
-    const left = this.evaluate(expr.left);
-    const right = this.evaluate(expr.right);
+  private evaluarBinario(expr: any): any {
+    const izquierda = this.evaluar(expr.left);
+    const derecha = this.evaluar(expr.right);
     switch (expr.operator) {
       case "+":
-        return left + right;
+        return izquierda + derecha;
       case "-":
-        return left - right;
+        return izquierda - derecha;
       case "*":
-        return left * right;
+        return izquierda * derecha;
       case "/":
-        if (right === 0) {
+        if (derecha === 0) {
           throw new Error("División por cero");
         }
-        return left / right;
+        return izquierda / derecha;
       case "==":
-        return left === right;
+        return izquierda === derecha;
       case "!=":
-        return left !== right;
+        return izquierda !== derecha;
       case "<":
-        return left < right;
+        return izquierda < derecha;
       case ">":
-        return left > right;
+        return izquierda > derecha;
       case "<=":
-        return left <= right;
+        return izquierda <= derecha;
       case ">=":
-        return left >= right;
+        return izquierda >= derecha;
       case "^":
-        return Math.pow(left, right);
+        return Math.pow(izquierda, derecha);
       default:
         throw new Error("Operador desconocido: " + expr.operator);
     }
@@ -159,55 +159,55 @@ export class Interpreter {
    * Ejecuta una llamada a función.
    * Soporta "imprime" como función incorporada y funciones definidas por el usuario.
    */
-  private executeFunctionCall(expr: any): any {
-    // Funcion incorporada "imprime"
+  private ejecutarLlamadaFunción(expr: any): any {
+    // Función incorporada "imprime"
     if (expr.callee === "imprime") {
-      const args = expr.arguments.map((arg: any) => this.evaluate(arg));
-      const message = args.join(" ");
+      const args = expr.arguments.map((arg: any) => this.evaluar(arg));
+      const mensaje = args.join(" ");
       // Se acumula la salida en lugar de solo imprimir en consola
-      this.output += message;
-      return message;
+      this.salida += mensaje;
+      return mensaje;
     }
     // Función definida por el usuario
-    const func = this.functions[expr.callee];
+    const func = this.funciones[expr.callee];
     if (!func) {
       throw new Error("Función no definida: " + expr.callee);
     }
-    const args = expr.arguments.map((arg: any) => this.evaluate(arg));
-    
+    const args = expr.arguments.map((arg: any) => this.evaluar(arg));
+
     // Se guarda el ambiente actual y la salida global
-    const previousGlobals = { ...this.globals };
-    const previousOutput = this.output;
+    const globalesPrevias = { ...this.globales };
+    const salidaPrevia = this.salida;
     // Reiniciamos la salida local para capturar la salida propia de la función
-    this.output = "";
+    this.salida = "";
 
     if (func.params.length !== args.length) {
       throw new Error(`Número incorrecto de argumentos para la función ${func.name}`);
     }
     // Asigna los parámetros de la función a los argumentos evaluados
     for (let i = 0; i < func.params.length; i++) {
-      this.globals[func.params[i]] = args[i];
+      this.globales[func.params[i]] = args[i];
     }
-    
-    let result = null;
+
+    let resultado = null;
     try {
-      result = this.executeBlock(func.body);
+      resultado = this.ejecutarBloque(func.body);
     } catch (e) {
-      if (e instanceof ReturnException) {
-        result = e.value;
+      if (e instanceof ExcepcionRetorno) {
+        resultado = e.valor;
       } else {
         throw e;
       }
     }
     // Se obtiene la salida generada durante la ejecución de la función
-    const printedOutput = this.output;
+    const salidaImpreso = this.salida;
     // Se restaura el ambiente y la salida global previa
-    this.globals = previousGlobals;
-    this.output = previousOutput;
-    
-    // Se retorna la salida impresa o el resultado; puedes optar por devolver un JSON
-    return printedOutput !== "" ? printedOutput : result;
+    this.globales = globalesPrevias;
+    this.salida = salidaPrevia;
+
+    // Se retorna la salida impresa o el resultado
+    return salidaImpreso !== "" ? salidaImpreso : resultado;
   }
 }
 
-export default Interpreter;
+export default Interprete;
