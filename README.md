@@ -1,4 +1,11 @@
 
+## Grupo 10 - LyC
+- Motta Chumbe, Jeanpierre (22200030)
+- Guerrero Falla, Christian (22200211)
+- Martinez Fuentes, Kenny (22200206)
+- Sernaque Gutierrez, Jose Roberto (22200063)
+- Triveño Daza, Felipe (22200051)
+
 ## Componentes Centrales: Lexer, Parser, Interpreter
 
 Este proyecto se basa en tres componentes esenciales: el Lexer, Parser e Interpreter. Estos trabajan juntos para analizar y ejecutar código escrito en el lenguaje definido por el proyecto.
