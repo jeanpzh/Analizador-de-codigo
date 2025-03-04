@@ -2,7 +2,7 @@ import {
   ASTNode, ProgramNode, VarDeclarationNode, FunctionDeclarationNode, IfStatementNode,
   ReturnStatementNode, ExpressionStatementNode, BinaryExpressionNode, IdentifierNode,
   LiteralNode, GroupingNode, FunctionCallNode
-} from "@/lib/ats"
+} from "@/lib/ast"
 
 export class Parser {
   private tokens: any[];
